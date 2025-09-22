@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -12,54 +13,51 @@ namespace LEAVETYPESETUPFORM.Controller
 {
     public class LeaveTypeController
     {
-        private String connectionString = "Data Source=localhost;Initial Catalog=JOSHYTESTIMONYdatadb;Integrated Security=True;";
-
-
-      /*  public string GenerateLeaveTypeID()
+        public LeaveTypeController()
         {
-            string prefix = "L";
-            DateTime now = DateTime.Now;
-            string suffix = "S";
-            char MonthChar = now.ToString("MMMM")[0];
-            char DayChar = now.ToString("dddd")[0];
-            string DateChar = now.ToString("dd");
+            EnsureTableExists();
+        }
+        //private String connectionString = "Data Source=localhost;Initial Catalog=JOSHYTESTIMONYdatadb;Integrated Security=True;";
+        private readonly string connectionString = 
+            ConfigurationManager.ConnectionStrings["MyDbConnection"].ConnectionString;
 
-            string baseID = $"{prefix}{MonthChar}{DayChar}{DateChar}{suffix}";
-
-            string lastID = null;
-
+        private void EnsureTableExists()
+        {
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
-                SqlCommand cmd = new SqlCommand(
-                    "SELECT MAX(LeaveTypeID) FROM EmployeeLeaveTypes WHERE LeaveTypeID LIKE @Prefix + '%'",
-                    conn
-                );
+                string sql = @"
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='EmployeeLeaveTypes' AND xtype='U')
+            BEGIN
+                CREATE TABLE EmployeeLeaveTypes (
+                    LeaveTypeID NVARCHAR(50) PRIMARY KEY,
+                    LeaveTypeName NVARCHAR(100) NOT NULL,
+                    Description NVARCHAR(255) NULL,
+                    MaxDaysPerYear INT NOT NULL,
+                    CarryForwardAllowed BIT NOT NULL,
+                    CarryForwardLimit INT NULL,
+                    PaidLeave BIT NOT NULL,
+                    RequiresApproval BIT NOT NULL,
+                    WorkflowCode NVARCHAR(50) NULL,
+                    GenderRestriction NVARCHAR(20) NULL,
+                    Active BIT NOT NULL DEFAULT 1,
+                    CreatedBy NVARCHAR(50) NULL,
+                    CreatedOn DATETIME DEFAULT GETDATE(),
+                    Voided BIT NOT NULL DEFAULT 0,
+                    VoidedBy NVARCHAR(50) NULL,
+                    VoidedOn DATETIME NULL,
+                    ImageData VARBINARY(MAX) NULL,
+                    FileData VARBINARY(MAX) NULL
+                )
+            END";
 
-                cmd.Parameters.AddWithValue("@Prefix", baseID); // adds the base id to the prefix 
-                lastID = cmd.ExecuteScalar()?.ToString();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
             }
-
-            int nextNumber = 1;
-
-            /*   if (!string.IsNullOrEmpty(lastID) && lastID.Length >= baseID.Length + 4)
-               {
-                   string numberPart = lastID.Substring(baseID.Length);
-                   if (int.TryParse(numberPart, out int lastNum))
-                       nextNumber = lastNum + 1;
-               */
-      /*
-            if (!string.IsNullOrEmpty(lastID) && lastID.StartsWith(baseID))
-            {
-                string numberPart = lastID.Substring(baseID.Length);
-                if (int.TryParse(numberPart, out int lastNum))
-                    nextNumber = lastNum + 1;
-            }
-
-            return baseID + nextNumber.ToString("D3");
-
-        } */
+        }
 
         public string generateCode()
         {
@@ -141,7 +139,8 @@ namespace LEAVETYPESETUPFORM.Controller
                string voidedBy = null,
                DateTime? voidedOn = null)
                 {
-                    string saveQuery = @"
+            EnsureTableExists();
+            string saveQuery = @"
                 INSERT INTO EMPLOYEELEAVETYPES (
                     LeaveTypeID, LeaveTypeName, Description, MaxDaysPerYear, CarryForwardAllowed, CarryForwardLimit,
                     PaidLeave, RequiresApproval, WorkflowCode, GenderRestriction, Active, CreatedBy, CreatedOn,
@@ -295,4 +294,51 @@ namespace LEAVETYPESETUPFORM.Controller
 
     }
 }
-  
+
+
+
+/*  public string GenerateLeaveTypeID()
+  {
+      string prefix = "L";
+      DateTime now = DateTime.Now;
+      string suffix = "S";
+      char MonthChar = now.ToString("MMMM")[0];
+      char DayChar = now.ToString("dddd")[0];
+      string DateChar = now.ToString("dd");
+
+      string baseID = $"{prefix}{MonthChar}{DayChar}{DateChar}{suffix}";
+
+      string lastID = null;
+
+      using (SqlConnection conn = new SqlConnection(connectionString))
+      {
+          conn.Open();
+
+          SqlCommand cmd = new SqlCommand(
+              "SELECT MAX(LeaveTypeID) FROM EmployeeLeaveTypes WHERE LeaveTypeID LIKE @Prefix + '%'",
+              conn
+          );
+
+          cmd.Parameters.AddWithValue("@Prefix", baseID); // adds the base id to the prefix 
+          lastID = cmd.ExecuteScalar()?.ToString();
+      }
+
+      int nextNumber = 1;
+
+      /*   if (!string.IsNullOrEmpty(lastID) && lastID.Length >= baseID.Length + 4)
+         {
+             string numberPart = lastID.Substring(baseID.Length);
+             if (int.TryParse(numberPart, out int lastNum))
+                 nextNumber = lastNum + 1;
+         */
+/*
+      if (!string.IsNullOrEmpty(lastID) && lastID.StartsWith(baseID))
+      {
+          string numberPart = lastID.Substring(baseID.Length);
+          if (int.TryParse(numberPart, out int lastNum))
+              nextNumber = lastNum + 1;
+      }
+
+      return baseID + nextNumber.ToString("D3");
+
+  } */
