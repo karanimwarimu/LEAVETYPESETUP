@@ -22,13 +22,14 @@ It connects to a **SQL Server database** and allows you to:
 
 ## 🗄️ Database Setup
 The application uses **SQL Server**.  
-Create a table similar to this in your database:
+create a databse to test this feature , then 
+Connect to the db using :
 
-```sql
-CREATE TABLE LeaveTypes (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    LeaveCode NVARCHAR(20) UNIQUE NOT NULL,
-    LeaveName NVARCHAR(100) NOT NULL,
-    Description NVARCHAR(255),
-    DateCreated DATETIME DEFAULT GETDATE()
-);
+```sqlconnection
+	<connectionStrings>
+		<add name="MyDbConnection"
+				 connectionString="Server=MACHINENAME/SERVERINSTANCE ;Database=DATABASENAME;Trusted_Connection=True;TrustServerCertificate=True"
+				 providerName="System.Data.SqlClient" />
+	</connectionStrings>
+
+```
