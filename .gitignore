@@ -1,0 +1,18 @@
+# ========== Visual Studio ==========
+.vs/
+*.suo
+*.user
+*.userosscache
+*.rsuser
+*.sln.docstates
+
+# ========== Build Results ==========
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Tt]emp/
+TestResults/
+x64/
+x86/
+[Aa]ppPack
+
